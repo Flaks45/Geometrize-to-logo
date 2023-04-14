@@ -51,14 +51,17 @@ def finish_string():
     return f"\nsetxy 0 0"
 
 
-def generate_image(image_data: dict, displace: tuple = (0, 0)):
-    """Logo code to generate the final image. Requires image data (dict) and displace (tuple). Returns string."""
-    code = ""  # Final string to be returned placeholder
+def generate_image(image_data: dict, displace: tuple = (0, 0), color_variation: tuple = (255, 255, 255)):
+    """Logo code to generate the final image. Requires image data (dict), displace (tuple) and color variation (tuple).
+    Returns string."""
+    code = ""
     for shape in image_data:
         # Get info from the object
         color_data = shape["color"]
         transform_data = shape["data"]
-        shape_color = (color_data[0], color_data[1], color_data[2])
+        shape_color = (color_data[0] * int(color_variation[0] / 255),
+                       color_data[1] * int(color_variation[1] / 255),
+                       color_data[2] * int(color_variation[2] / 255))
 
         if shape["type"] == 0:  # If the object type is a rectangle
             rectangle_position = (int((transform_data[0] + transform_data[2]) / 2), transform_data[3])
