@@ -10,7 +10,7 @@ def get_circle_function():
 def get_line_function():
     """Logo function to generate a line. Returns string."""
     return "to generate_line :x :y :length :angle :r :g :b\nsetxy :x :y" \
-           "\nsetpensize 1\ncolor (:r :g :b)\nsetheading :angle\nfd :length\nend"
+           "\nsetpensize 1\ncolor (:r :g :b)\nrt :angle\nfd :length\nlt :angle\nend"
 
 
 def get_rectangle_function():
@@ -60,7 +60,7 @@ def generate_image(image_data: dict, displace: tuple = (0, 0)):
         transform_data = shape["data"]
         shape_color = (color_data[0], color_data[1], color_data[2])
 
-        if shape["type"] == 0:  # If the object type is a square
+        if shape["type"] == 0:  # If the object type is a rectangle
             rectangle_position = (int((transform_data[0] + transform_data[2]) / 2), transform_data[3])
             rectangle_width = transform_data[2] - transform_data[0]
             rectangle_length = transform_data[3] - transform_data[1]
