@@ -3,9 +3,13 @@ import pyperclip
 
 
 from logic import generate_image
+from ui import MainApp
 
 
 if __name__ == "__main__":
+    #app = MainApp()
+    #app.mainloop()
+
     # Get image data from Geometrize json file
     file_path = input("Copy and paste the path to the Geometrize json file: ").replace('"', '')
     try:
