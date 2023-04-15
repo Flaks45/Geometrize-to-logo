@@ -51,14 +51,15 @@ def finish_string():
     return f"\nsetxy 0 0"
 
 
-def generate_image(image_data: dict, displace: tuple = (0, 0), color_variation: tuple = (255, 255, 255)):
+def generate_image(image_data: dict, displace: tuple = (0, 0), scale_factor: int = 1,
+                   color_variation: tuple = (255, 255, 255)):
     """Logo code to generate the final image. Requires image data (dict), displace (tuple) and color variation (tuple).
     Returns string."""
     code = ""
     for shape in image_data:
         # Get info from the object
         color_data = shape["color"]
-        transform_data = shape["data"]
+        transform_data = [telement * scale_factor for telement in shape["data"]]
         shape_color = (color_data[0] * int(color_variation[0] / 255),
                        color_data[1] * int(color_variation[1] / 255),
                        color_data[2] * int(color_variation[2] / 255))

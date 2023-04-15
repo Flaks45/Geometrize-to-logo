@@ -20,8 +20,17 @@ if __name__ == "__main__":
 
     # Configuration
     try:
+        scale_factor = int(input("Enter scale factor, 1 for original size (recommended for small images) | ONLY INT: "))
+    except ValueError:
+        print("Invalid scale factor, set to x1")
+        scale_factor = 1
+
+    print(f"Scale factor set to {scale_factor}\n")
+
+    try:
         displace = tuple(map(int, input(
             "Tip! For 500x500 images displace will be (0, 0), since logo's drawing space is 500 pixels by 500 pixels \n"
+            "Press ENTER to set to default\n"
             "Enter displace amount | Follow format -> (x, y): ").replace('(', '').replace(')', '').split(',')))
         if len(displace) != 2:
             raise ValueError
@@ -33,7 +42,8 @@ if __name__ == "__main__":
 
     try:
         color_variation = tuple(map(int, input("For color variation keep in mind that (255, 255, 255) will result in "
-                                               "the original image \nEnter color variation | Follow format -> "
+                                               "the original image \nPress ENTER to set to default\n"
+                                               "Enter color variation | Follow format -> "
                                                "(r, g, b): ").replace('(', '').replace(')', '').split(',')))
         if len(color_variation) != 3:
             raise ValueError
@@ -44,8 +54,7 @@ if __name__ == "__main__":
     print(f"Color variation set to {color_variation}\n")
 
     # Generates logo code
-    final_code = generate_image(image_data, displace, color_variation)
+    final_code = generate_image(image_data, displace, scale_factor, color_variation)
 
     pyperclip.copy(final_code)
-
     print("Code successfully copied to your clipboard.")
