@@ -3,6 +3,7 @@ import pyperclip
 
 
 from logic import generate_image
+from render import preview_image
 from ui import MainApp
 
 
@@ -59,6 +60,10 @@ if __name__ == "__main__":
 
     # Generates logo code
     final_code = generate_image(image_data, displace, scale_factor, color_variation)
+
+    # Generate preview image
+    output = preview_image(image_data, displace, scale_factor, color_variation)
+    output.show()
 
     pyperclip.copy(final_code)
     print("Code successfully copied to your clipboard.")
