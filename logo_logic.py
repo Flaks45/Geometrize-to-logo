@@ -110,8 +110,8 @@ def finish_string():
     return f"\nsetxy 0 0"
 
 
-def generate_image(image_data: dict, displace: tuple = (0, 0), scale_factor: int = 1,
-                   color_variation: tuple = (255, 255, 255)):
+def generate_image(image_data: dict = None, displace: tuple = None, scale_factor: int = None,
+                   color_variation: tuple = None):
     """
     Logo code to generate the final image.
     :param dict image_data: Image data from Geometrize file
@@ -121,14 +121,27 @@ def generate_image(image_data: dict, displace: tuple = (0, 0), scale_factor: int
     :return: finished code
     :rtype: str
     """
+    # Default values
+    if image_data is None:
+        image_data = {}
+
+    if displace is None:
+        displace = (0, 0)
+
+    if scale_factor is None:
+        scale_factor = 1
+
+    if color_variation is None:
+        color_variation = (255, 255, 255)
+
     code = ""
     for shape in image_data:
         # Get info from the object
         color_data = shape["color"]
-        transform_data = [telement * scale_factor for telement in shape["data"]]
-        shape_color = (color_data[0] * int(color_variation[0] / 255),
-                       color_data[1] * int(color_variation[1] / 255),
-                       color_data[2] * int(color_variation[2] / 255))
+        transform_data = [int(telement * scale_factor) for telement in shape["data"]]
+        shape_color = (int(color_data[0] * color_variation[0] / 255),
+                       int(color_data[1] * color_variation[1] / 255),
+                       int(color_data[2] * color_variation[2] / 255))
 
         # If the object type is a rectangle
         if shape["type"] == 0:
@@ -144,15 +157,15 @@ def generate_image(image_data: dict, displace: tuple = (0, 0), scale_factor: int
         # If the object type is a rotated rectangle
         if shape["type"] == 1:
             rotated_rectangle_position = (int((transform_data[0] + transform_data[2]) / 2 + displace[0]),
-                                  int((transform_data[1] + transform_data[3]) / 2) + displace[1])
+                                          int((transform_data[1] + transform_data[3]) / 2 + displace[1]))
             rotated_rectangle_width = transform_data[2] - transform_data[0]
             if rotated_rectangle_width == 0:
                 rotated_rectangle_width = 1
             rotated_rectangle_height = transform_data[3] - transform_data[1]
-            rotated_rectangle_rotation = transform_data[4]
+            rotated_rectangle_rotation = int(transform_data[4] / scale_factor)
 
             code += "\n" + rotated_rectangle_string(rotated_rectangle_position, rotated_rectangle_height,
-            rotated_rectangle_width, rotated_rectangle_rotation, shape_color)
+                                                    rotated_rectangle_width, rotated_rectangle_rotation, shape_color)
 
         # If the object type is a circle
         if shape["type"] == 5:

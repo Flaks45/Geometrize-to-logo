@@ -1,10 +1,12 @@
 import math
 from PIL import Image, ImageDraw
+import base64
+from io import BytesIO
 
 
 def hex_string(value: int):
     """
-    Turns value into hex without the address (0xXX -> XX)
+    Turns value into hex without the address (0xXX -> XX).
     :param int value:
     :return: hex string value
     :rtype: str
@@ -17,7 +19,7 @@ def hex_string(value: int):
 
 def rgb_to_string(r: int, g: int, b: int):
     """
-    Function to return the string of an RGB color
+    Function to return the string of an RGB color.
     :param int r: Red value
     :param int g: Green value
     :param int b: Blue value
@@ -41,7 +43,7 @@ def rgb_to_string(r: int, g: int, b: int):
 
 def rotated_about(ax, ay, bx, by, angle):
     """
-    Function to rotate points
+    Function to rotate points.
     :param ax:
     :param ay:
     :param bx:
@@ -49,25 +51,38 @@ def rotated_about(ax, ay, bx, by, angle):
     :param angle:
     :return:
     """
-    radius = math.dist((ax,ay),(bx,by))
-    angle += math.atan2(ay-by, ax-bx)
+    radius = math.dist((ax, ay), (bx, by))
+    angle += math.atan2(ay - by, ax - bx)
     return (
         round(bx + radius * math.cos(angle)),
         round(by + radius * math.sin(angle))
     )
 
 
-def preview_image(image_data: dict, displace: tuple = (0, 0), scale_factor: int = 1,
-                  color_variation: tuple = (255, 255, 255)):
+def preview_image(image_data: dict = None, displace: tuple = None, scale_factor: int = None,
+                  color_variation: tuple = None):
     """
-    Function to preview a generated Logo image
+    Function to preview a generated Logo image.
     :param dict image_data: Image data from Geometrize file
     :param tuple displace: Displacement amount of the image
     :param int scale_factor: Scale of the image
     :param tuple color_variation: Color multipliers of the image
-    :return: image
-    :rtype: Image.new()
+    :return: image name
+    :rtype: str
     """
+    # Default values
+    if image_data is None:
+        image_data = {}
+
+    if displace is None:
+        displace = (0, 0)
+
+    if scale_factor is None:
+        scale_factor = 1
+
+    if color_variation is None:
+        color_variation = (255, 255, 255)
+
     # Create white canvas
     image = Image.new(mode="RGB", size=(500, 500), color="#AAAAAA")
     d_image = ImageDraw.Draw(image)
@@ -77,17 +92,17 @@ def preview_image(image_data: dict, displace: tuple = (0, 0), scale_factor: int 
         d_image.rectangle((25 * (i % 20) + 1,
                            25 * math.floor(i / 20) + 1,
                            25 * (i % 20) + 24,
-                          25 * math.floor(i / 20) + 24),
+                           25 * math.floor(i / 20) + 24),
                           fill="#FFFFFF")
 
     # Draw shapes
     for shape in image_data:
         # Get info from the object
         color_data = shape["color"]
-        transform_data = [telement * scale_factor for telement in shape["data"]]
-        shape_color = rgb_to_string(color_data[0] * int(color_variation[0] / 255),
-                                    color_data[1] * int(color_variation[1] / 255),
-                                    color_data[2] * int(color_variation[2] / 255))
+        transform_data = [int(telement * scale_factor) for telement in shape["data"]]
+        shape_color = rgb_to_string(int(color_data[0] * color_variation[0] / 255),
+                                    int(color_data[1] * color_variation[1] / 255),
+                                    int(color_data[2] * color_variation[2] / 255))
 
         # If the object type is a rectangle
         if shape["type"] == 0:
@@ -105,7 +120,8 @@ def preview_image(image_data: dict, displace: tuple = (0, 0), scale_factor: int 
             )
             rectangle_vertices = [rotated_about(x, y, (transform_data[0] + transform_data[2]) / 2 + displace[0],
                                                 (transform_data[3] + transform_data[1]) / 2 + displace[1],
-                                                math.radians(transform_data[4])) for x, y in rectangle_vertices]
+                                                math.radians(transform_data[4] / scale_factor))
+                                  for x, y in rectangle_vertices]
 
             d_image.polygon(rectangle_vertices, fill=shape_color)
 
@@ -113,8 +129,8 @@ def preview_image(image_data: dict, displace: tuple = (0, 0), scale_factor: int 
         if shape["type"] == 5:
             d_image.ellipse([((transform_data[0] - transform_data[2] + displace[0]),
                               (transform_data[1] - transform_data[2] + displace[1])),
-                            ((transform_data[0] + transform_data[2] + displace[0]),
-                             (transform_data[1] + transform_data[2] + displace[1]))],
+                             ((transform_data[0] + transform_data[2] + displace[0]),
+                              (transform_data[1] + transform_data[2] + displace[1]))],
                             fill=shape_color)
 
         # If the object type is a line
@@ -123,4 +139,5 @@ def preview_image(image_data: dict, displace: tuple = (0, 0), scale_factor: int 
                           (transform_data[2] + displace[0], transform_data[3] + displace[1])],
                          fill=shape_color)
 
-    return image
+    image.save("./Assets/output.png")
+    return "./Assets/output.png"
