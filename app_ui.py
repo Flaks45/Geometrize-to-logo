@@ -37,6 +37,16 @@ class MainApp(tkinter.Tk):
         self.displace = None
         self.scale_factor = None
         self.color_variation = None
+        self.slider_precision = False
+
+        self.scale_slider_clicking = False
+        self.xdisplace_slider_clicking = False
+        self.ydisplace_slider_clicking = False
+        self.is_bg_on = False
+
+        # Bind key events to actions
+        self.bind("<KeyPress-Shift_L>", self.slider_precision_change)
+        self.bind("<KeyRelease-Shift_L>", self.slider_unprecision_change)
 
         # Geometrize website button
         self.geometrize_website_frame = tkinter.Frame(bg="#FFFFFF")
@@ -92,24 +102,25 @@ class MainApp(tkinter.Tk):
         self.configuration_frame = tkinter.Frame(bg="#FFFFFF")
         self.configuration_frame.pack(side=tkinter.RIGHT, padx=100)
 
-        # Preview image button
-        self.preview_image_button = tkinter.Button(self.configuration_frame, text="Update image preview",
-                                                   command=self.update_preview_image_func)
-        self.preview_image_button.pack(expand=True, fill="both", pady=20)
+        # Toggle background button
+        self.toggle_background = tkinter.Button(self.configuration_frame, text="Activate background",
+                                                command=self.toggle_background_button, height=1)
+        self.toggle_background.pack(expand=True, fill="both")
 
         # Displace sliders
         self.displace_x_slider = tkinter.Scale(self.configuration_frame, from_=0, to=500, orient=tkinter.HORIZONTAL,
-                                               tickinterval=50, length=500, resolution=5, label="X displace")
+                                               tickinterval=50, length=500, resolution=10, label="X displace")
         self.displace_y_slider = tkinter.Scale(self.configuration_frame, from_=0, to=500, orient=tkinter.HORIZONTAL,
-                                               tickinterval=50, length=500, resolution=5, label="Y displace")
+                                               tickinterval=50, length=500, resolution=10, label="Y displace")
 
         self.displace_x_slider.pack()
         self.displace_y_slider.pack()
 
-        self.displace_x_slider.bind("<ButtonRelease-1>", self.update_preview_image_func)
-        self.displace_y_slider.bind("<ButtonRelease-1>", self.update_preview_image_func)
-        self.displace_x_slider.bind("<ButtonRelease-3>", self.update_preview_image_func)
-        self.displace_y_slider.bind("<ButtonRelease-3>", self.update_preview_image_func)
+        self.displace_x_slider.bind("<ButtonPress>", self.xdisplace_slider_precision)
+        self.displace_y_slider.bind("<ButtonPress>", self.ydisplace_slider_precision)
+
+        self.displace_x_slider.bind("<ButtonRelease>", self.update_preview_image_func)
+        self.displace_y_slider.bind("<ButtonRelease>", self.update_preview_image_func)
 
         # Color sliders
         self.red_modifier_slider = tkinter.Scale(self.configuration_frame, from_=0, to=255, orient=tkinter.HORIZONTAL,
@@ -127,19 +138,23 @@ class MainApp(tkinter.Tk):
         self.green_modifier_slider.pack()
         self.blue_modifier_slider.pack()
 
-        self.red_modifier_slider.bind("<ButtonRelease-1>", self.update_preview_image_func)
-        self.green_modifier_slider.bind("<ButtonRelease-1>", self.update_preview_image_func)
-        self.blue_modifier_slider.bind("<ButtonRelease-1>", self.update_preview_image_func)
-        self.red_modifier_slider.bind("<ButtonRelease-3>", self.update_preview_image_func)
-        self.green_modifier_slider.bind("<ButtonRelease-3>", self.update_preview_image_func)
-        self.blue_modifier_slider.bind("<ButtonRelease-3>", self.update_preview_image_func)
+        self.red_modifier_slider.bind("<ButtonRelease>", self.update_preview_image_func)
+        self.green_modifier_slider.bind("<ButtonRelease>", self.update_preview_image_func)
+        self.blue_modifier_slider.bind("<ButtonRelease>", self.update_preview_image_func)
 
         # Scale slider
-        self.scale_factor_slider = tkinter.Scale(self.configuration_frame, from_=1, to=10, orient=tkinter.HORIZONTAL,
-                                                 tickinterval=1, length=500, resolution=0.1, label="Scale factor")
+        self.scale_factor_slider = tkinter.Scale(self.configuration_frame, from_=0, to=10, orient=tkinter.HORIZONTAL,
+                                                 tickinterval=1, length=500, resolution=0.5, digits=4,
+                                                 label="Scale factor")
+        self.scale_factor_slider.set(1)
         self.scale_factor_slider.pack()
-        self.scale_factor_slider.bind("<ButtonRelease-1>", self.update_preview_image_func)
-        self.scale_factor_slider.bind("<ButtonRelease-3>", self.update_preview_image_func)
+        self.scale_factor_slider.bind("<ButtonPress>", self.scale_slider_precision)
+        self.scale_factor_slider.bind("<ButtonRelease>", self.update_preview_image_func)
+
+        # Information label of shift precision
+        self.precision_label = tkinter.Label(self.configuration_frame,
+                                             text="* Press left shift for more slider accuracy")
+        self.precision_label.pack(fill="x")
 
     def center_window(self):
         """
@@ -163,7 +178,8 @@ class MainApp(tkinter.Tk):
         Function to update the preview image.
         :return:
         """
-        self.preview_image_dir = preview_image(self.image_data, self.displace, self.scale_factor, self.color_variation)
+        self.preview_image_dir = preview_image(self.image_data, self.displace, self.scale_factor, self.color_variation,
+                                               self.is_bg_on)
         self.preview_image = tkinter.PhotoImage(file=self.preview_image_dir)
         self.preview_image_label.config(image=self.preview_image)
         self.preview_image_label.pack()
@@ -175,15 +191,22 @@ class MainApp(tkinter.Tk):
             self.update_preview_image()
         except UnicodeDecodeError:
             tkinter.messagebox.showerror(message="Couldn't load file")
+        except TypeError:
+            tkinter.messagebox.showerror(message="Couldn't load file")
         except PermissionError:
             return
 
     def get_code_button(self, *args):
-        generated_code = generate_image(self.image_data, self.displace, self.scale_factor, self.color_variation)
+        generated_code = generate_image(self.image_data, self.displace, self.scale_factor, self.color_variation,
+                                        self.is_bg_on)
         copy_text(generated_code)
         tkinter.messagebox.showinfo(message="Logo code has been successfully copied")
 
     def update_preview_image_func(self, *args):
+        self.scale_slider_clicking = False
+        self.xdisplace_slider_clicking = False
+        self.ydisplace_slider_clicking = False
+
         self.displace = (self.displace_x_slider.get(), self.displace_y_slider.get())
         self.color_variation = (self.red_modifier_slider.get(), self.green_modifier_slider.get(),
                                 self.blue_modifier_slider.get())
@@ -192,22 +215,30 @@ class MainApp(tkinter.Tk):
 
     def save_options_button(self):
         saved_data = {"image_data": self.image_data, "displace": self.displace,
-                      "color_variation": self.color_variation, "scale_factor": self.scale_factor}
+                      "color_variation": self.color_variation, "scale_factor": self.scale_factor,
+                      "bg_active": self.is_bg_on}
         try:
             file_path = tkinter.filedialog.asksaveasfilename(initialfile="config", defaultextension=".json")
             dict_to_json_file(saved_data, file_path)
             tkinter.messagebox.showinfo(message=f"Settings have been saved at {file_path}")
+
         except PermissionError:
+            return
+
+        except FileNotFoundError:
             return
 
     def load_options_button(self):
         try:
             file = tkinter.filedialog.askopenfilename()
             loaded_settings = get_file_path_json(file)
-            self.image_data = loaded_settings["image_data"]
+            copy_image = tkinter.messagebox.askyesno(message="Do you want to import the associated image?")
+            if copy_image:
+                self.image_data = loaded_settings["image_data"]
             self.displace = loaded_settings["displace"]
             self.color_variation = loaded_settings["color_variation"]
             self.scale_factor = loaded_settings["scale_factor"]
+            self.is_bg_on = not loaded_settings["bg_active"]  # Reversed to toggle flip down in function
 
             # Set widgets to settings
             self.displace_x_slider.set(self.displace[0])
@@ -216,10 +247,14 @@ class MainApp(tkinter.Tk):
             self.green_modifier_slider.set(self.color_variation[1])
             self.blue_modifier_slider.set(self.color_variation[2])
             self.scale_factor_slider.set(self.scale_factor)
+            self.toggle_background_button()
 
             self.update_preview_image()
 
         except KeyError:
+            return
+
+        except FileNotFoundError:
             return
 
         except UnicodeDecodeError:
@@ -227,3 +262,55 @@ class MainApp(tkinter.Tk):
 
         except TypeError:
             tkinter.messagebox.showerror(message="Couldn't process file")
+
+    def slider_precision_change(self, *args):
+        self.slider_precision = True
+
+        if self.scale_slider_clicking is True:
+            self.scale_factor_slider.configure(resolution=0.01)
+        if self.xdisplace_slider_clicking is True:
+            self.displace_x_slider.configure(resolution=1)
+        if self.ydisplace_slider_clicking is True:
+            self.displace_y_slider.configure(resolution=1)
+
+    def slider_unprecision_change(self, *args):
+        self.slider_precision = False
+
+        if self.scale_slider_clicking is True:
+            self.scale_factor_slider.configure(resolution=0.5)
+        if self.xdisplace_slider_clicking is True:
+            self.displace_x_slider.configure(resolution=10)
+        if self.ydisplace_slider_clicking is True:
+            self.displace_y_slider.configure(resolution=10)
+
+    def scale_slider_precision(self, *args):
+        self.scale_slider_clicking = True
+        if self.slider_precision is True:
+            self.scale_factor_slider.configure(resolution=0.01)
+        else:
+            self.scale_factor_slider.configure(resolution=0.5)
+
+    def xdisplace_slider_precision(self, *args):
+        self.xdisplace_slider_clicking = True
+        if self.slider_precision is True:
+            self.displace_x_slider.configure(resolution=1)
+        else:
+            self.displace_x_slider.configure(resolution=10)
+
+    def ydisplace_slider_precision(self, *args):
+        self.ydisplace_slider_clicking = True
+        if self.slider_precision is True:
+            self.displace_y_slider.configure(resolution=1)
+        else:
+            self.displace_y_slider.configure(resolution=10)
+
+    def toggle_background_button(self, *args):
+        if self.is_bg_on:
+            self.toggle_background.configure(text="Activate background")
+            self.is_bg_on = False
+
+        else:
+            self.toggle_background.configure(text="Deactivate background")
+            self.is_bg_on = True
+
+        self.update_preview_image()

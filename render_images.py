@@ -60,9 +60,10 @@ def rotated_about(ax, ay, bx, by, angle):
 
 
 def preview_image(image_data: dict = None, displace: tuple = None, scale_factor: int = None,
-                  color_variation: tuple = None):
+                  color_variation: tuple = None, bg_activated: bool = False):
     """
     Function to preview a generated Logo image.
+    :param bool bg_activated: Whether a plain background is generated or not
     :param dict image_data: Image data from Geometrize file
     :param tuple displace: Displacement amount of the image
     :param int scale_factor: Scale of the image
@@ -94,6 +95,18 @@ def preview_image(image_data: dict = None, displace: tuple = None, scale_factor:
                            25 * (i % 20) + 24,
                            25 * math.floor(i / 20) + 24),
                           fill="#FFFFFF")
+
+    # If no image needs to be drawn
+    if scale_factor == 0:
+        image.save("./Assets/output.png")
+        return "./Assets/output.png"
+
+    # Draw background
+    if bg_activated and len(image_data) > 0:
+        bg_color = (int(image_data[0]["color"][0] * color_variation[0] / 255),
+                    int(image_data[0]["color"][1] * color_variation[1] / 255),
+                    int(image_data[0]["color"][2] * color_variation[2] / 255))
+        d_image.rectangle((0, 0, 500, 500), fill=rgb_to_string(bg_color[0], bg_color[1], bg_color[2]))
 
     # Draw shapes
     for shape in image_data:

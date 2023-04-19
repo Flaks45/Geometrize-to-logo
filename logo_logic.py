@@ -111,9 +111,10 @@ def finish_string():
 
 
 def generate_image(image_data: dict = None, displace: tuple = None, scale_factor: int = None,
-                   color_variation: tuple = None):
+                   color_variation: tuple = None, bg_activated: bool = False):
     """
     Logo code to generate the final image.
+    :param bool bg_activated: Whether a plain background is generated or not
     :param dict image_data: Image data from Geometrize file
     :param tuple displace: Displacement amount of the image
     :param int scale_factor: Scale of the image
@@ -121,6 +122,10 @@ def generate_image(image_data: dict = None, displace: tuple = None, scale_factor
     :return: finished code
     :rtype: str
     """
+    # If no image needs to be drawn
+    if scale_factor == 0:
+        return "No code has been generated since scale is equal to 0"
+
     # Default values
     if image_data is None:
         image_data = {}
@@ -135,6 +140,14 @@ def generate_image(image_data: dict = None, displace: tuple = None, scale_factor
         color_variation = (255, 255, 255)
 
     code = ""
+
+    if bg_activated and len(image_data) > 0:
+        bg_color = (int(image_data[0]["color"][0] * color_variation[0] / 255),
+                    int(image_data[0]["color"][1] * color_variation[1] / 255),
+                    int(image_data[0]["color"][2] * color_variation[2] / 255))
+
+        code += f"setxy 250 500 setpensize 500 color ({bg_color[0]} {bg_color[1]} {bg_color[2]}) fd 500\n\n"
+
     for shape in image_data:
         # Get info from the object
         color_data = shape["color"]
