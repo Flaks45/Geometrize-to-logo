@@ -28,7 +28,7 @@ class MainApp(tkinter.Tk):
         self.geometry("1280x720")
         self.center_window()
         self.resizable(False, False)
-        self.iconphoto(True, tkinter.PhotoImage(file="./Assets/icon.png"))
+        self.iconbitmap("./Assets/icon.ico")
         self.attributes("-alpha", 1.0)
         self.configure(bg="white")
 
@@ -194,8 +194,8 @@ class MainApp(tkinter.Tk):
         saved_data = {"image_data": self.image_data, "displace": self.displace,
                       "color_variation": self.color_variation, "scale_factor": self.scale_factor}
         try:
-            directory = tkinter.filedialog.askdirectory()
-            file_path = dict_to_json_file(saved_data, directory)
+            file_path = tkinter.filedialog.asksaveasfilename(initialfile="config", defaultextension=".json")
+            dict_to_json_file(saved_data, file_path)
             tkinter.messagebox.showinfo(message=f"Settings have been saved at {file_path}")
         except PermissionError:
             return

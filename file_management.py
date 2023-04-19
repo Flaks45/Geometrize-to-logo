@@ -21,18 +21,14 @@ def get_file_path_json(file_path: str = None):
     return file_data
 
 
-def dict_to_json_file(dictionary: dict, directory: str):
+def dict_to_json_file(dictionary: dict, file_path: str):
     """
     Function to turn dict into JSON file and save it in set directory
     :param dictionary: Dictionary with data to parse
-    :param directory: Directory to save file into
-    :return: File path
-    :rtype: str
+    :param file_path: Directory to save file into
     """
-    with open(f"{directory}/geometrize_config_(time_{int(time.time())}).json", "w") as outfile:
+    with open(f"{file_path}", "w") as outfile:
         json.dump(dictionary, outfile, indent=4)
-
-    return f"{directory}/geometrize_config_(time_{int(time.time())}).json"
 
 
 def copy_text(text: str = ""):
