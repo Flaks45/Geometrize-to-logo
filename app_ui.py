@@ -43,6 +43,7 @@ class MainApp(tkinter.Tk):
         self.xdisplace_slider_clicking = False
         self.ydisplace_slider_clicking = False
         self.is_bg_on = False
+        self.is_margin_on = False
 
         # Bind key events to actions
         self.bind("<KeyPress-Shift_L>", self.slider_precision_change)
@@ -102,10 +103,19 @@ class MainApp(tkinter.Tk):
         self.configuration_frame = tkinter.Frame(bg="#FFFFFF")
         self.configuration_frame.pack(side=tkinter.RIGHT, padx=100)
 
+        # Toggle widget
+        self.toggle_widget = tkinter.Frame(self.configuration_frame)
+        self.toggle_widget.pack(fill="x")
+
         # Toggle background button
-        self.toggle_background = tkinter.Button(self.configuration_frame, text="Activate background",
+        self.toggle_background = tkinter.Button(self.toggle_widget, text="Activate background",
                                                 command=self.toggle_background_button, height=1)
-        self.toggle_background.pack(expand=True, fill="both")
+        self.toggle_background.pack(expand=True, fill="both", side=tkinter.LEFT)
+
+        # Toggle margin button
+        self.toggle_margin = tkinter.Button(self.toggle_widget, text="Activate margin",
+                                            command=self.toggle_margin_button, height=1)
+        self.toggle_margin.pack(expand=True, fill="both", side=tkinter.RIGHT)
 
         # Displace sliders
         self.displace_x_slider = tkinter.Scale(self.configuration_frame, from_=0, to=500, orient=tkinter.HORIZONTAL,
@@ -179,7 +189,7 @@ class MainApp(tkinter.Tk):
         :return:
         """
         self.preview_image_dir = preview_image(self.image_data, self.displace, self.scale_factor, self.color_variation,
-                                               self.is_bg_on)
+                                               self.is_bg_on, self.is_margin_on)
         self.preview_image = tkinter.PhotoImage(file=self.preview_image_dir)
         self.preview_image_label.config(image=self.preview_image)
         self.preview_image_label.pack()
@@ -198,7 +208,7 @@ class MainApp(tkinter.Tk):
 
     def get_code_button(self, *args):
         generated_code = generate_image(self.image_data, self.displace, self.scale_factor, self.color_variation,
-                                        self.is_bg_on)
+                                        self.is_bg_on, self.is_margin_on)
         copy_text(generated_code)
         tkinter.messagebox.showinfo(message="Logo code has been successfully copied")
 
@@ -216,7 +226,7 @@ class MainApp(tkinter.Tk):
     def save_options_button(self):
         saved_data = {"image_data": self.image_data, "displace": self.displace,
                       "color_variation": self.color_variation, "scale_factor": self.scale_factor,
-                      "bg_active": self.is_bg_on}
+                      "bg_active": self.is_bg_on, "margin_active": self.is_margin_on}
         try:
             file_path = tkinter.filedialog.asksaveasfilename(initialfile="config", defaultextension=".json")
             dict_to_json_file(saved_data, file_path)
@@ -239,6 +249,7 @@ class MainApp(tkinter.Tk):
             self.color_variation = loaded_settings["color_variation"]
             self.scale_factor = loaded_settings["scale_factor"]
             self.is_bg_on = not loaded_settings["bg_active"]  # Reversed to toggle flip down in function
+            self.is_margin_on = not loaded_settings["margin_active"]  # Reversed to toggle flip down in function
 
             # Set widgets to settings
             self.displace_x_slider.set(self.displace[0])
@@ -248,6 +259,7 @@ class MainApp(tkinter.Tk):
             self.blue_modifier_slider.set(self.color_variation[2])
             self.scale_factor_slider.set(self.scale_factor)
             self.toggle_background_button()
+            self.toggle_margin_button()
 
             self.update_preview_image()
 
@@ -312,5 +324,16 @@ class MainApp(tkinter.Tk):
         else:
             self.toggle_background.configure(text="Deactivate background")
             self.is_bg_on = True
+
+        self.update_preview_image()
+
+    def toggle_margin_button(self, *args):
+        if self.is_margin_on:
+            self.toggle_margin.configure(text="Activate margin")
+            self.is_margin_on = False
+
+        else:
+            self.toggle_margin.configure(text="Deactivate margin")
+            self.is_margin_on = True
 
         self.update_preview_image()

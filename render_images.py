@@ -60,7 +60,7 @@ def rotated_about(ax, ay, bx, by, angle):
 
 
 def preview_image(image_data: dict = None, displace: tuple = None, scale_factor: int = None,
-                  color_variation: tuple = None, bg_activated: bool = False, margin_activated: bool = True):
+                  color_variation: tuple = None, bg_activated: bool = False, margin_activated: bool = False):
     """
     Function to preview a generated Logo image.
     :param bool bg_activated: Whether a plain background is generated or not
@@ -155,8 +155,10 @@ def preview_image(image_data: dict = None, displace: tuple = None, scale_factor:
 
     # Draw margins
     if margin_activated and len(image_data) > 0:
-        margin_corners = [image_data[0]["data"][0] + displace[0], image_data[0]["data"][1] + displace[1],
-                          image_data[0]["data"][2] + displace[0], image_data[0]["data"][3] + displace[1]]
+        margin_corners = [image_data[0]["data"][0] * scale_factor + displace[0],
+                          image_data[0]["data"][1] * scale_factor + displace[1],
+                          image_data[0]["data"][2] * scale_factor + displace[0],
+                          image_data[0]["data"][3] * scale_factor + displace[1]]
         d_image.rectangle((0, 0, margin_corners[0], 500), fill="#000000")
         d_image.rectangle((margin_corners[2], 0, 500, 500), fill="#000000")
         d_image.rectangle((0, 0, 500, margin_corners[1]), fill="#000000")
