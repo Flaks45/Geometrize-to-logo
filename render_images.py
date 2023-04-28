@@ -60,10 +60,11 @@ def rotated_about(ax, ay, bx, by, angle):
 
 
 def preview_image(image_data: dict = None, displace: tuple = None, scale_factor: int = None,
-                  color_variation: tuple = None, bg_activated: bool = False):
+                  color_variation: tuple = None, bg_activated: bool = False, margin_activated: bool = True):
     """
     Function to preview a generated Logo image.
     :param bool bg_activated: Whether a plain background is generated or not
+    :param bool margin_activated: Whether the image is generated with margins or not
     :param dict image_data: Image data from Geometrize file
     :param tuple displace: Displacement amount of the image
     :param int scale_factor: Scale of the image
@@ -151,6 +152,15 @@ def preview_image(image_data: dict = None, displace: tuple = None, scale_factor:
             d_image.line([(transform_data[0] + displace[0], transform_data[1] + displace[1]),
                           (transform_data[2] + displace[0], transform_data[3] + displace[1])],
                          fill=shape_color)
+
+    # Draw margins
+    if margin_activated and len(image_data) > 0:
+        margin_corners = [image_data[0]["data"][0] + displace[0], image_data[0]["data"][1] + displace[1],
+                          image_data[0]["data"][2] + displace[0], image_data[0]["data"][3] + displace[1]]
+        d_image.rectangle((0, 0, margin_corners[0], 500), fill="#000000")
+        d_image.rectangle((margin_corners[2], 0, 500, 500), fill="#000000")
+        d_image.rectangle((0, 0, 500, margin_corners[1]), fill="#000000")
+        d_image.rectangle((0, margin_corners[3], 500, 500), fill="#000000")
 
     image.save("./Assets/output.png")
     return "./Assets/output.png"

@@ -111,10 +111,11 @@ def finish_string():
 
 
 def generate_image(image_data: dict = None, displace: tuple = None, scale_factor: int = None,
-                   color_variation: tuple = None, bg_activated: bool = False):
+                   color_variation: tuple = None, bg_activated: bool = False, margin_activated: bool = True):
     """
     Logo code to generate the final image.
     :param bool bg_activated: Whether a plain background is generated or not
+    :param bool margin_activated: Whether the image is generated with margins or not
     :param dict image_data: Image data from Geometrize file
     :param tuple displace: Displacement amount of the image
     :param int scale_factor: Scale of the image
@@ -198,5 +199,14 @@ def generate_image(image_data: dict = None, displace: tuple = None, scale_factor
             line_length = int(math.dist([line_x1, line_y1], [line_x2, line_y2]))
 
             code += "\n" + line_string(line_position, line_length, line_angle, shape_color)
+
+    # Draw margins
+    if margin_activated and len(image_data) > 0:
+        margin_corners = [image_data[0]["data"][0] + displace[0], image_data[0]["data"][1] + displace[1],
+                          image_data[0]["data"][2] + displace[0], image_data[0]["data"][3] + displace[1]]
+        code += "\n" + rectangle_string((int(0 + margin_corners[2] / 2), 500), margin_corners[2], 500, (0, 0, 0))
+        code += "\n" + rectangle_string((int(500 - margin_corners[2] / 2), 500), margin_corners[2], 500, (0, 0, 0))
+        code += "\n" + rectangle_string((0, int(0 + margin_corners[3] / 2)), margin_corners[3], 500, (0, 0, 0))
+        code += "\n" + rectangle_string((0, int(500 - margin_corners[3] / 2)), margin_corners[3], 500, (0, 0, 0))
 
     return get_functions() + code + finish_string()
