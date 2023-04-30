@@ -159,10 +159,10 @@ def preview_image(image_data: dict = None, displace: tuple = None, scale_factor:
                           image_data[0]["data"][1] * scale_factor + displace[1],
                           image_data[0]["data"][2] * scale_factor + displace[0],
                           image_data[0]["data"][3] * scale_factor + displace[1]]
-        d_image.rectangle((0, 0, margin_corners[0], 500), fill="#000000")
-        d_image.rectangle((margin_corners[2], 0, 500, 500), fill="#000000")
-        d_image.rectangle((0, 0, 500, margin_corners[1]), fill="#000000")
-        d_image.rectangle((0, margin_corners[3], 500, 500), fill="#000000")
+        d_image.rectangle((0, 0, int(margin_corners[0]), 500), fill="#000000")
+        d_image.rectangle((0, 0, 500, int(margin_corners[1])), fill="#000000")
+        d_image.rectangle((int(margin_corners[2]), 0, 500, 500), fill="#000000")
+        d_image.rectangle((0, int(margin_corners[3]), 500, 500), fill="#000000")
 
     image.save("./Assets/output.png")
     return "./Assets/output.png"

@@ -206,9 +206,11 @@ def generate_image(image_data: dict = None, displace: tuple = None, scale_factor
                           image_data[0]["data"][1] * scale_factor + displace[1],
                           image_data[0]["data"][2] * scale_factor + displace[0],
                           image_data[0]["data"][3] * scale_factor + displace[1]]
-        code += "\n" + rectangle_string((int(0 + margin_corners[2] / 2), 500), margin_corners[2], 500, (0, 0, 0))
-        code += "\n" + rectangle_string((int(500 - margin_corners[2] / 2), 500), margin_corners[2], 500, (0, 0, 0))
-        code += "\n" + rectangle_string((0, int(0 + margin_corners[3] / 2)), margin_corners[3], 500, (0, 0, 0))
-        code += "\n" + rectangle_string((0, int(500 - margin_corners[3] / 2)), margin_corners[3], 500, (0, 0, 0))
+        (0, 0, int(margin_corners[0]), 500)
+        code += "\n" + rectangle_string((int(margin_corners[0] / 2), 500), 500, int(margin_corners[0]), (0, 0, 0))
+        code += "\n" + rectangle_string((250, int(margin_corners[1])), int(margin_corners[1]), 500, (0, 0, 0))
+        code += "\n" + rectangle_string((int(margin_corners[2]) + int((500 - int(margin_corners[2])) / 2), 500), 500,
+                                        500 - int(margin_corners[2]), (0, 0, 0))
+        code += "\n" + rectangle_string((250, 500), 500 - int(margin_corners[3]), 500, (0, 0, 0))
 
     return get_functions() + code + finish_string()
