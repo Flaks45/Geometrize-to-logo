@@ -1,0 +1,15 @@
+{
+    "image_data": null,
+    "displace": [
+        0,
+        0
+    ],
+    "color_variation": [
+        255,
+        0,
+        0
+    ],
+    "scale_factor": 1.0,
+    "bg_active": false,
+    "margin_active": false
+}
