@@ -2,6 +2,7 @@ import tkinter
 import tkinter.filedialog
 import tkinter.messagebox
 import webbrowser
+import io
 
 from render_images import preview_image
 from file_management import get_file_path_json, copy_text, dict_to_json_file
@@ -9,6 +10,9 @@ from logo_logic import generate_image
 
 
 def geometrize_link_button():
+    """
+    Function that opens web browser with Geometrize website: https://www.samcodes.co.uk/project/geometrize-haxe-web/
+    """
     tkinter.messagebox.showwarning(message="Only generate rotated rectangles, rectangles, circles and lines with the "
                                            "following settings: shape_opacity=255, initial_background_opacity=255 ("
                                            "Accept to go to link)")
@@ -63,7 +67,7 @@ class MainApp(tkinter.Tk):
         self.preview_image_frame.pack(side=tkinter.LEFT, padx=100)
 
         # Image label
-        self.preview_image_dir = None
+        self.preview_image_data = None
         self.preview_image = None
         self.preview_image_label = tkinter.Label(self.preview_image_frame, width=500, height=500)
         self.update_preview_image()
@@ -80,7 +84,7 @@ class MainApp(tkinter.Tk):
         self.preview_image_widget_right.pack(side=tkinter.RIGHT, fill="x", expand=True)
 
         # Get JSON file button
-        self.get_image_data_button = tkinter.Button(self.preview_image_widget_left, text="Upload image",
+        self.get_image_data_button = tkinter.Button(self.preview_image_widget_left, text="Upload image data",
                                                     command=self.get_json_data_button)
         self.get_image_data_button.pack(side=tkinter.LEFT, fill="both", expand=True)
 
@@ -185,20 +189,27 @@ class MainApp(tkinter.Tk):
 
     def update_preview_image(self):
         """
-        Function to update the preview image.
-        :return:
+        Update the preview image label to display inside the app.
         """
-        self.preview_image_dir = preview_image(self.image_data, self.displace, self.scale_factor, self.color_variation,
-                                               self.is_bg_on, self.is_margin_on)
-        self.preview_image = tkinter.PhotoImage(file=self.preview_image_dir)
+        self.preview_image_data = preview_image(self.image_data, self.displace, self.scale_factor, self.color_variation,
+                                                self.is_bg_on, self.is_margin_on)
+        with io.BytesIO() as prev_img_buffer:  # Buffer image bytes
+            self.preview_image_data.save(prev_img_buffer, "PNG", bitmap_format="png")
+            prev_img_buffer.seek(0)
+            self.preview_image = tkinter.PhotoImage(data=prev_img_buffer.read())
+
+        # Update preview image
         self.preview_image_label.config(image=self.preview_image)
         self.preview_image_label.pack()
 
     def get_json_data_button(self, *args):
+        """
+        Get JSON file button action.
+        """
         try:
             file = tkinter.filedialog.askopenfilename()
             self.image_data = get_file_path_json(file)
-            self.update_preview_image()
+            self.update_preview_image()  # Update preview image with new data
         except UnicodeDecodeError:
             tkinter.messagebox.showerror(message="Couldn't load file")
         except TypeError:
@@ -207,27 +218,39 @@ class MainApp(tkinter.Tk):
             return
 
     def get_code_button(self, *args):
+        """
+        Copy code button action.
+        """
         generated_code = generate_image(self.image_data, self.displace, self.scale_factor, self.color_variation,
-                                        self.is_bg_on, self.is_margin_on)
+                                        self.is_bg_on, self.is_margin_on)   # Gets str with logo code
         copy_text(generated_code)
         tkinter.messagebox.showinfo(message="Logo code has been successfully copied")
 
     def update_preview_image_func(self, *args):
+        """
+        Slider updates on button release, gets data from every single one then updates preview image
+        """
         self.scale_slider_clicking = False
         self.xdisplace_slider_clicking = False
         self.ydisplace_slider_clicking = False
 
+        # Get new data
         self.displace = (self.displace_x_slider.get(), self.displace_y_slider.get())
         self.color_variation = (self.red_modifier_slider.get(), self.green_modifier_slider.get(),
                                 self.blue_modifier_slider.get())
         self.scale_factor = self.scale_factor_slider.get()
-        self.update_preview_image()
+        self.update_preview_image()  # Update preview image with new data
 
     def save_options_button(self):
+        """
+        Save options button action.
+        """
+        # Format data as a dict type (as saved in the JSON)
         saved_data = {"image_data": self.image_data, "displace": self.displace,
                       "color_variation": self.color_variation, "scale_factor": self.scale_factor,
                       "bg_active": self.is_bg_on, "margin_active": self.is_margin_on}
         try:
+            # Ask where to save JSON file with settings data
             file_path = tkinter.filedialog.asksaveasfilename(initialfile="config", defaultextension=".json")
             dict_to_json_file(saved_data, file_path)
             tkinter.messagebox.showinfo(message=f"Settings have been saved at {file_path}")
@@ -239,12 +262,23 @@ class MainApp(tkinter.Tk):
             return
 
     def load_options_button(self):
+        """
+        Load options button action.
+        """
         try:
+            # Gets file path and info from JSON
             file = tkinter.filedialog.askopenfilename()
             loaded_settings = get_file_path_json(file)
-            copy_image = tkinter.messagebox.askyesno(message="Do you want to import the associated image?")
+
+            # Import associated image or not
+            if loaded_settings["image_data"] is None:  # If no image data is associated
+                copy_image = False
+            else:
+                copy_image = tkinter.messagebox.askyesno(message="Do you want to import the associated image?")
             if copy_image:
                 self.image_data = loaded_settings["image_data"]
+
+            # Set settings of the image
             self.displace = loaded_settings["displace"]
             self.color_variation = loaded_settings["color_variation"]
             self.scale_factor = loaded_settings["scale_factor"]
@@ -261,7 +295,7 @@ class MainApp(tkinter.Tk):
             self.toggle_background_button()
             self.toggle_margin_button()
 
-            self.update_preview_image()
+            self.update_preview_image()  # Update preview image
 
         except KeyError:
             return
@@ -270,14 +304,20 @@ class MainApp(tkinter.Tk):
             return
 
         except UnicodeDecodeError:
-            tkinter.messagebox.showerror(message="Couldn't load file")
+            tkinter.messagebox.showerror(message="Couldn't load file")  # Not a JSON
 
         except TypeError:
-            tkinter.messagebox.showerror(message="Couldn't process file")
+            tkinter.messagebox.showerror(message="Couldn't process file")  # Couldn't read JSON, not a config file
 
     def slider_precision_change(self, *args):
+        """
+        Change slider precision each time left shift is pressed.
+        Note: This only exists in case you press the shift key while clicking
+        """
         self.slider_precision = True
 
+        # Resolution is how fast each slider increases/decreases per click action
+        # This makes each slider have more values in between
         if self.scale_slider_clicking is True:
             self.scale_factor_slider.configure(resolution=0.01)
         if self.xdisplace_slider_clicking is True:
@@ -286,8 +326,14 @@ class MainApp(tkinter.Tk):
             self.displace_y_slider.configure(resolution=1)
 
     def slider_unprecision_change(self, *args):
+        """
+        Change slider precision each time left shift is released.
+        Note: This only exists in case you release the shift key while clicking
+        """
         self.slider_precision = False
 
+        # Resolution is how fast each slider increases/decreases per click action
+        # This makes each slider have fewer values in between
         if self.scale_slider_clicking is True:
             self.scale_factor_slider.configure(resolution=0.5)
         if self.xdisplace_slider_clicking is True:
@@ -296,6 +342,9 @@ class MainApp(tkinter.Tk):
             self.displace_y_slider.configure(resolution=10)
 
     def scale_slider_precision(self, *args):
+        """
+        Change scale slider precision when clicked
+        """
         self.scale_slider_clicking = True
         if self.slider_precision is True:
             self.scale_factor_slider.configure(resolution=0.01)
@@ -303,6 +352,9 @@ class MainApp(tkinter.Tk):
             self.scale_factor_slider.configure(resolution=0.5)
 
     def xdisplace_slider_precision(self, *args):
+        """
+        Change x displace slider precision when clicked
+        """
         self.xdisplace_slider_clicking = True
         if self.slider_precision is True:
             self.displace_x_slider.configure(resolution=1)
@@ -310,6 +362,9 @@ class MainApp(tkinter.Tk):
             self.displace_x_slider.configure(resolution=10)
 
     def ydisplace_slider_precision(self, *args):
+        """
+        Change y displace slider precision when clicked
+        """
         self.ydisplace_slider_clicking = True
         if self.slider_precision is True:
             self.displace_y_slider.configure(resolution=1)
@@ -317,6 +372,9 @@ class MainApp(tkinter.Tk):
             self.displace_y_slider.configure(resolution=10)
 
     def toggle_background_button(self, *args):
+        """
+        Toggle background button action.
+        """
         if self.is_bg_on:
             self.toggle_background.configure(text="Activate background")
             self.is_bg_on = False
@@ -325,9 +383,12 @@ class MainApp(tkinter.Tk):
             self.toggle_background.configure(text="Deactivate background")
             self.is_bg_on = True
 
-        self.update_preview_image()
+        self.update_preview_image()  # Update preview image
 
     def toggle_margin_button(self, *args):
+        """
+        Toggle margin button action.
+        """
         if self.is_margin_on:
             self.toggle_margin.configure(text="Activate margin")
             self.is_margin_on = False
@@ -336,4 +397,4 @@ class MainApp(tkinter.Tk):
             self.toggle_margin.configure(text="Deactivate margin")
             self.is_margin_on = True
 
-        self.update_preview_image()
+        self.update_preview_image()  # Update preview image

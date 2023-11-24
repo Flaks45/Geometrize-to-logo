@@ -1,6 +1,5 @@
 import json
 import pyperclip
-import time
 
 
 def get_file_path_json(file_path: str = None):

@@ -1,7 +1,5 @@
 import math
 from PIL import Image, ImageDraw
-import base64
-from io import BytesIO
 
 
 def hex_string(value: int):
@@ -44,12 +42,13 @@ def rgb_to_string(r: int, g: int, b: int):
 def rotated_about(ax, ay, bx, by, angle):
     """
     Function to rotate points.
-    :param ax:
-    :param ay:
-    :param bx:
-    :param by:
-    :param angle:
-    :return:
+    :param ax: point A x
+    :param ay: point A y
+    :param bx: point B x
+    :param by: point B y
+    :param angle: angle to rotate
+    :return: New position (x, y)
+    :rtype: tuple[float, float]
     """
     radius = math.dist((ax, ay), (bx, by))
     angle += math.atan2(ay - by, ax - bx)
@@ -69,8 +68,8 @@ def preview_image(image_data: dict = None, displace: tuple = None, scale_factor:
     :param tuple displace: Displacement amount of the image
     :param int scale_factor: Scale of the image
     :param tuple color_variation: Color multipliers of the image
-    :return: image name
-    :rtype: str
+    :return: Image file
+    :rtype: Image.new()
     """
     # Default values
     if image_data is None:
@@ -99,8 +98,7 @@ def preview_image(image_data: dict = None, displace: tuple = None, scale_factor:
 
     # If no image needs to be drawn
     if scale_factor == 0:
-        image.save("./Assets/output.png")
-        return "./Assets/output.png"
+        return image
 
     # Draw background
     if bg_activated and len(image_data) > 0:
@@ -164,5 +162,4 @@ def preview_image(image_data: dict = None, displace: tuple = None, scale_factor:
         d_image.rectangle((int(margin_corners[2]), 0, 500, 500), fill="#000000")
         d_image.rectangle((0, int(margin_corners[3]), 500, 500), fill="#000000")
 
-    image.save("./Assets/output.png")
-    return "./Assets/output.png"
+    return image

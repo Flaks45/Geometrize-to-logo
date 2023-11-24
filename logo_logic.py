@@ -107,7 +107,7 @@ def finish_string():
     :return: move turtle away
     :rtype: str
     """
-    return f"\nsetxy 0 0"
+    return f"\nsetxy 0 0"  # Move the turtle away
 
 
 def generate_image(image_data: dict = None, displace: tuple = None, scale_factor: int = None,
