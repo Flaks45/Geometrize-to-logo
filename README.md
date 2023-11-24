@@ -1,5 +1,5 @@
 # Geometrize-to-logo
-[![Project Banner](banner.png)](https://https://github.com/Flaks45/Geometrize-to-logo/Assets/geometrize_to_logo_banner.png)
+[![Project Banner](banner.png)](https://github.com/Flaks45/Geometrize-to-logo/blob/main/Assets/geometrize_to_logo_banner.png)
 
 Python tkinter application to turn [Geometrize](https://www.samcodes.co.uk/project/geometrize-haxe-web/)'s renders into Logo code following a limited subset of [Berkeley Logo Reference Manual](https://people.eecs.berkeley.edu/~bh/v2ch14/manual.html)'s Logo formatting.
 
